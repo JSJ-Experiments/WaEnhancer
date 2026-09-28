@@ -100,6 +100,7 @@ import com.wmods.wppenhacer.xposed.features.privacy.ViewOnce
 import com.wmods.wppenhacer.xposed.features.providers.ContextMenuActionProvider
 import com.wmods.wppenhacer.xposed.spoofer.HookBL
 import com.wmods.wppenhacer.xposed.utils.DesignUtils
+import com.wmods.wppenhacer.xposed.utils.CachedRemotePreferences
 import com.wmods.wppenhacer.xposed.utils.ReflectionUtils
 import com.wmods.wppenhacer.xposed.utils.Utils
 import de.robv.android.xposed.SELinuxHelper
@@ -274,11 +275,12 @@ class FeatureLoader {
                 XposedBridge.log(e)
             }
             XposedBridge.log("XSharedPreferences not accessible, using RemotePreferences fallback")
-            return RemotePreferences(
+            return CachedRemotePreferences(RemotePreferences(
                 context,
                 BuildConfig.APPLICATION_ID + ".preferences",
-                BuildConfig.APPLICATION_ID + "_preferences"
-            )
+                BuildConfig.APPLICATION_ID + "_preferences",
+                true
+            ))
         }
 
         private fun initializeModuleContext() {
@@ -381,6 +383,9 @@ class FeatureLoader {
 
             WppCore.addListenerActivity { activity, type ->
                 if (type == WppCore.ActivityChangeState.ChangeType.RESUMED) {
+                    if (activity.javaClass.simpleName == "HomeActivity") {
+                        (pref as? CachedRemotePreferences)?.refreshAsync()
+                    }
                     checkUpdate(activity)
                 }
 

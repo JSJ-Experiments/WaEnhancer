@@ -1,0 +1,31 @@
+name: WaEnhancer freeze investigation build
+
+on:
+  push:
+    branches:
+      - feature/wae-provider-freeze
+
+jobs:
+  build:
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Build WhatsApp APK
+        run: ./gradlew :app:assembleWhatsappDebug --no-daemon --console=plain
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: waenhancer-freeze-debug-temporary-signature
+          path: app/build/outputs/apk/whatsapp/debug/*.apk
+          if-no-files-found: error

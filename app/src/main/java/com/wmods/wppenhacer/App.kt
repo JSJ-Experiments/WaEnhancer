@@ -10,6 +10,8 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.Process
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.Keep
@@ -26,8 +28,20 @@ import java.util.Locale
 
 class App : Application() {
 
+    override fun attachBaseContext(base: Context) {
+        val start = SystemClock.elapsedRealtime()
+        Log.i("WAE-Startup", "attachBaseContext start pid=${Process.myPid()}")
+        try {
+            super.attachBaseContext(base)
+        } finally {
+            Log.i("WAE-Startup", "attachBaseContext complete in ${SystemClock.elapsedRealtime() - start}ms")
+        }
+    }
+
     @SuppressLint("ApplySharedPref")
     override fun onCreate() {
+        val start = SystemClock.elapsedRealtime()
+        Log.i("WAE-Startup", "Application.onCreate start pid=${Process.myPid()}")
         super.onCreate()
         instance = this
         installCrashHandler()
@@ -41,6 +55,7 @@ class App : Application() {
         } catch (e: Exception) {
             Utils.showToast("[PREFS] Error accessing app data: ${e.message}")
         }
+        Log.i("WAE-Startup", "Application.onCreate complete in ${SystemClock.elapsedRealtime() - start}ms")
     }
 
     private fun installCrashHandler() {
